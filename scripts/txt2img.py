@@ -91,7 +91,7 @@ def check_safety(x_image):
     assert x_checked_image.shape[0] == len(has_nsfw_concept)
     for i in range(len(has_nsfw_concept)):
         if has_nsfw_concept[i]:
-            x_checked_image[i] = load_replacement(x_checked_image[i])
+            #x_checked_image[i] = load_replacement(x_checked_image[i])
     return x_checked_image, has_nsfw_concept
 
 
@@ -247,6 +247,9 @@ def main():
         opt.ckpt = "models/ldm/text2img-large/model.ckpt"
         opt.outdir = "outputs/txt2img-samples-laion400m"
 
+    print("prompt is: " + opt.prompt)
+    print("Negative prompt is: " + opt.negative_prompt)
+
     seed_everything(opt.seed)
 
     config = OmegaConf.load(f"{opt.config}")
@@ -300,12 +303,14 @@ def main():
                 all_samples = list()
                 for n in trange(opt.n_iter, desc="Sampling"):
                     for prompts in tqdm(data, desc="data"):
+                        print("len(opt.negative_prompt): " + str(len(opt.negative_prompt)))
                         uc = None
                         if len(opt.negative_prompt) > 1:
                             uc = model.get_learned_conditioning(
                                 len(prompts) * [opt.negative_prompt])
                         if isinstance(prompts, tuple):
                             prompts = list(prompts)
+
                         c = model.get_learned_conditioning(prompts)
                         shape = [opt.C, opt.H // opt.f, opt.W // opt.f]
                         samples_ddim, _ = sampler.sample(S=opt.ddim_steps,
